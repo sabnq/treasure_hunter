@@ -16,6 +16,8 @@ public class Player extends Entity {
 	
 	public final int screenX;
 	public final int screenY;
+	public int hasKey = 0;
+	int standCounter = 0;
 
 	public Player(GamePanel gp, KeyHandler keyH) {
 		this.gp = gp;
@@ -27,6 +29,8 @@ public class Player extends Entity {
 		solidArea = new Rectangle();
 		solidArea.x = 8;
 		solidArea.y = 16;
+		solidAreaDefaultX = solidArea.x;
+		solidAreaDefaultY = solidArea.y;
 		solidArea.width = 32;
 		solidArea.height = 32;
 
@@ -74,6 +78,10 @@ public class Player extends Entity {
 			collionOn = false;
 			gp.cChecker.checkTile(this);
 			
+			int objIndex = gp.cChecker.checkObject(this, true);
+			pickUpObject(objIndex);
+			
+			
 			if(collionOn == false) {
 				switch(direction) {
 				case "up": 
@@ -99,6 +107,47 @@ public class Player extends Entity {
 					spriteNum = 1;
 				}
 				spriteCounter = 0;
+			}
+		} else {
+			standCounter ++;
+			if(standCounter == 20) {
+				spriteNum = 1;
+				standCounter = 0;
+			}
+		}
+	}
+	
+	public void pickUpObject(int i) {
+		if (i != 999) {
+			String objectName = gp.obj[i].name;
+			switch (objectName) {
+			case "Key": 
+				gp.playSE(1);
+				hasKey++;
+				gp.obj[i] = null;
+				gp.ui.showMessage("You got a Key!");
+				break;
+			case "Door":
+				if(hasKey > 0) {
+					gp.playSE(3);
+					gp.obj[i] = null;
+					hasKey--;
+					gp.ui.showMessage("You opened the door!");
+				} else {
+					gp.ui.showMessage("You need a key!");
+				}
+				break;
+			case "Boots":
+				gp.playSE(3);
+				speed += 2;
+				gp.obj[i] = null;
+				gp.ui.showMessage("Speed Up!");
+				break;
+			case "Chest": 
+				gp.ui.gameFinished = true;
+				gp.stopMusic();
+				gp.playSE(4);
+				break;
 			}
 		}
 	}
